@@ -14,9 +14,13 @@ import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 가구 정의를 그대로 읽어 미리보기를 만든다.
@@ -32,6 +36,8 @@ import java.util.Locale;
 public final class PreviewRenderer {
 
     private final Plugin plugin;
+    /** 같은 경고를 매 틱 쏟아내지 않으려고 이미 알린 아이템을 기억해 둔다. */
+    private final Set<String> warned = ConcurrentHashMap.newKeySet();
 
     public PreviewRenderer(Plugin plugin) {
         this.plugin = plugin;
@@ -54,14 +60,54 @@ public final class PreviewRenderer {
 
         for (FurnitureElementConfig<?> config : variant.elementConfigs()) {
             if (!(config instanceof ItemDisplayFurnitureElementConfig element)) {
-                // 글자나 블록으로 된 조각은 미리보기에서 뺀다. 자리 잡는 데는
-                // 생김새의 대부분을 차지하는 아이템 조각만 있어도 충분하다.
+                // 글자나 블록으로 된 조각, BetterModel 같은 외부 모델은 여기서 못 그린다.
+                // 하나도 못 그리면 부르는 쪽이 손에 든 아이템으로 대신 띄운다.
                 continue;
             }
             ItemDisplay display = spawnOne(viewer, element, base, yaw);
             if (display != null) spawned.add(new Piece(element, display));
         }
         return spawned;
+    }
+
+    /**
+     * 가구 정의로는 못 그릴 때 손에 든 아이템으로 대신 띄운다.
+     *
+     * <p>블록이나 외부 모델로 된 가구, 또는 조각의 아이템을 못 만든 경우다. 생김새가
+     * 실물과 다를 수 있지만 <b>자리와 방향은 정확하다.</b> 아무것도 안 보이는 것보다 낫다.
+     */
+    public @Nullable Piece spawnFallback(Player viewer, ItemStack held, Location base, float yaw) {
+        ItemStack ghost = held.clone();
+        ghost.setAmount(1);
+        try {
+            ItemDisplay display = viewer.getWorld().spawn(centered(base, yaw), ItemDisplay.class, e -> {
+                e.setItemStack(ghost);
+                e.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+                e.setBillboard(Display.Billboard.FIXED);
+                e.setPersistent(false);
+                e.setInvulnerable(true);
+                e.setGravity(false);
+                e.setVisibleByDefault(false);
+
+                // 아이템 모델을 그대로 쓰면 한 블록을 꽉 채운다. 반 블록으로 줄이고
+                // 그만큼 띄워서 바닥에 놓인 것처럼 보이게 한다.
+                Transformation t = e.getTransformation();
+                t.getScale().set(0.5f, 0.5f, 0.5f);
+                t.getTranslation().set(0f, 0.25f, 0f);
+                e.setTransformation(t);
+            });
+            viewer.showEntity(plugin, display);
+            return new Piece(null, display);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private Location centered(Location base, float yaw) {
+        Location at = base.clone();
+        at.setYaw(yaw);
+        at.setPitch(0);
+        return at;
     }
 
     private ItemDisplay spawnOne(Player viewer, ItemDisplayFurnitureElementConfig element,
@@ -89,7 +135,10 @@ public final class PreviewRenderer {
     /** 조각 하나를 옮긴다. 새로 띄우는 것보다 싸고 깜빡이지 않는다. */
     public void move(Piece piece, Location base, float yaw) {
         if (piece.display().isDead()) return;
-        piece.display().teleport(positionOf(piece.element(), base, yaw));
+        Location at = piece.element() == null
+                ? centered(base, yaw)                       // 대신 띄운 것은 자리 보정이 없다
+                : positionOf(piece.element(), base, yaw);
+        piece.display().teleport(at);
     }
 
     /**
@@ -135,17 +184,41 @@ public final class PreviewRenderer {
         }
     }
 
+    /**
+     * 조각이 쓰는 아이템.
+     *
+     * <p>못 만들면 <b>왜 못 만들었는지 로그를 남긴다.</b> 조용히 넘기면 미리보기가 안
+     * 뜨는데 이유를 알 방법이 없다. 같은 아이템으로 매 틱 같은 경고가 쏟아지지 않게
+     * 한 번 본 것은 기억해 둔다.
+     */
     private ItemStack itemOf(ItemDisplayFurnitureElementConfig element, Player viewer) {
-        if (element.itemId == null) return null;
-        try {
-            var definition = CraftEngineItems.byId(element.itemId.toString());
-            if (definition == null) return null;
-            ItemStack made = definition.buildBukkitItem(viewer);
-            if (made != null) made.setAmount(1);
-            return made;
-        } catch (Throwable t) {
+        if (element.itemId == null) {
+            warnOnce("(이름 없음)", "조각에 item 이 안 적혀 있다");
             return null;
         }
+        try {
+            var definition = CraftEngineItems.byId(element.itemId);
+            if (definition == null) {
+                warnOnce(element.itemId.toString(), "CraftEngine 에 그 아이템이 없다");
+                return null;
+            }
+            ItemStack made = definition.buildBukkitItem(viewer);
+            if (made == null) {
+                warnOnce(element.itemId.toString(), "아이템을 만들지 못했다");
+                return null;
+            }
+            made.setAmount(1);
+            return made;
+        } catch (Throwable t) {
+            warnOnce(element.itemId.toString(), t.toString());
+            return null;
+        }
+    }
+
+    private void warnOnce(String itemId, String reason) {
+        if (!warned.add(itemId)) return;
+        plugin.getLogger().warning("미리보기를 못 그렸다 (" + itemId + "): " + reason
+                + " — 손에 든 아이템으로 대신 띄운다.");
     }
 
     /**

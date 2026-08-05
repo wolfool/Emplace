@@ -97,6 +97,11 @@ public final class PlacementSession {
         return blocked;
     }
 
+    /** 지금 떠 있는 미리보기 조각 수. 0 이면 아무것도 안 보인다는 뜻이다. */
+    public int pieceCount() {
+        return pieces.size();
+    }
+
     /** 이 자리·이 모습으로 미리보기를 옮긴다. */
     void showAt(Location where, String variant) {
         boolean variantChanged = !variant.equals(variantName);
@@ -133,6 +138,14 @@ public final class PlacementSession {
         if (variant == null || spot == null) return;
 
         pieces.addAll(renderer.spawn(player, variant, spot, yaw));
+
+        // 가구 정의로 아무것도 못 그렸다. 블록이나 외부 모델(BetterModel)로 된 가구거나
+        // 조각의 아이템을 못 만든 경우다. 손에 든 아이템으로라도 띄운다 —
+        // 생김새는 달라도 자리와 방향은 정확하고, 아무것도 안 보이는 것보다 낫다.
+        if (pieces.isEmpty()) {
+            PreviewRenderer.Piece fallback = renderer.spawnFallback(player, item, spot, yaw);
+            if (fallback != null) pieces.add(fallback);
+        }
         applyGlow();
     }
 

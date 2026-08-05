@@ -35,6 +35,10 @@ controls:
   # 웅크리면 취소한다. 끄면 손에 든 걸 바꾸거나 버려야 취소된다.
   sneak-to-cancel: true
 
+# 미리보기가 안 보일 때 켠다. 가로챈 가구와 띄운 조각 수를 로그에 남긴다.
+# 조각이 0개면 가구 정의로 못 그렸다는 뜻이고, 그때는 손에 든 아이템으로 대신 띄운다.
+debug: false
+
 # MiniMessage 문법을 쓴다. https://docs.advntr.dev/minimessage/format.html
 messages:
   hint: "<gray>좌클릭 <white>회전<gray> · 우클릭 <white>설치<gray> · 웅크리기 <white>취소"

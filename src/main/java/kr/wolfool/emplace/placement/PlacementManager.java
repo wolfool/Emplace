@@ -68,6 +68,13 @@ public final class PlacementManager {
         sessions.put(player.getUniqueId(), session);
         // 첫 프레임을 바로 그려서, 시작하자마자 미리보기가 보이게 한다.
         follow(session);
+
+        if (config.debug()) {
+            plugin.getLogger().info("가로챔: " + definition.id()
+                    + " | 모습 " + session.variantName()
+                    + " | 미리보기 조각 " + session.pieceCount() + "개"
+                    + (session.spot() == null ? " | 놓을 자리 못 찾음" : ""));
+        }
     }
 
     // ---------------- 매 틱 ----------------

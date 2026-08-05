@@ -19,6 +19,7 @@ public final class EmplaceConfig {
     private boolean glow = true;
     private boolean actionBar = true;
     private boolean sneakToCancel = true;
+    private boolean debug = false;
 
     public EmplaceConfig(Plugin plugin) {
         this.plugin = plugin;
@@ -40,6 +41,12 @@ public final class EmplaceConfig {
         this.glow = cfg.getBoolean("preview.glow", true);
         this.actionBar = cfg.getBoolean("preview.action-bar", true);
         this.sneakToCancel = cfg.getBoolean("controls.sneak-to-cancel", true);
+        this.debug = cfg.getBoolean("debug", false);
+    }
+
+    /** 켜면 가로챈 가구와 미리보기 조각 수를 로그에 남긴다. 안 보일 때 원인을 찾는 용도. */
+    public boolean debug() {
+        return debug;
     }
 
     /**
