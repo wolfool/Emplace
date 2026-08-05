@@ -1,0 +1,16 @@
+name: Emplace
+version: 1.0.0
+main: kr.wolfool.emplace.EmplacePlugin
+api-version: "1.21"
+depend: [CraftEngine]
+author: wolfool
+description: CraftEngine 가구를 미리보기로 자리 잡아 놓는다.
+commands:
+  emplace:
+    description: Emplace 상태 보기와 설정 다시 읽기
+    usage: /<command> [status|reload|cancel]
+    aliases: [emp]
+permissions:
+  emplace.admin:
+    description: /emplace reload 사용
+    default: op

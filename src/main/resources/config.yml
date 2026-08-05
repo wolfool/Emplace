@@ -1,0 +1,43 @@
+# ========================================
+# Emplace — CraftEngine 가구를 미리보기로 놓기
+# ========================================
+#
+# 가구 아이템을 우클릭하면 바로 놓이지 않고, 반투명 미리보기가 시선을 따라다닌다.
+# 자리와 방향을 잡은 뒤 한 번 더 우클릭하면 그때 놓인다.
+#
+#   좌클릭          회전 (웅크리고 좌클릭 = 반대 방향)
+#   우클릭          설치
+#   웅크리기        취소
+#
+# 미리보기의 크기·위치·회전·조명은 가구 정의에서 그대로 읽는다.
+# 여기에 따로 적을 값이 없고, 어떤 가구든 실물과 같게 보인다.
+
+# 미리보기로 놓지 '않을' 가구.
+# 여기 적은 것만 CraftEngine 이 하던 대로 우클릭 즉시 놓인다.
+# 나머지는 전부 미리보기를 거친다. 새 리소스팩을 깔아도 자동으로 먹힌다.
+#
+# 예시:
+# excluded-furniture:
+#   - "default:bench"
+#   - "myPack:small_plant"
+excluded-furniture: []
+
+# 놓을 자리를 찾는 거리(블록).
+reach: 5.0
+
+preview:
+  # 놓을 수 있으면 초록, 못 놓으면 빨강으로 빛나게 한다.
+  glow: true
+  # 조작 안내를 액션바에 계속 띄운다.
+  action-bar: true
+
+controls:
+  # 웅크리면 취소한다. 끄면 손에 든 걸 바꾸거나 버려야 취소된다.
+  sneak-to-cancel: true
+
+# MiniMessage 문법을 쓴다. https://docs.advntr.dev/minimessage/format.html
+messages:
+  hint: "<gray>좌클릭 <white>회전<gray> · 우클릭 <white>설치<gray> · 웅크리기 <white>취소"
+  hint-blocked: "<red>여기에는 놓을 수 없다"
+  cannot-place: "<red>여기에는 놓을 수 없다."
+  place-failed: "<red>가구를 놓지 못했다."
