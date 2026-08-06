@@ -42,6 +42,6 @@ debug: false
 # MiniMessage 문법을 쓴다. https://docs.advntr.dev/minimessage/format.html
 messages:
   hint: "<gray>좌클릭 <white>회전<gray> · 우클릭 <white>설치<gray> · 웅크리기 <white>취소"
-  hint-blocked: "<red>여기에는 놓을 수 없다"
-  cannot-place: "<red>여기에는 놓을 수 없다."
-  place-failed: "<red>가구를 놓지 못했다."
+  hint-blocked: "<red>여기에는 놓을 수 없습니다"
+  cannot-place: "<red>여기에는 놓을 수 없습니다."
+  place-failed: "<red>가구를 놓지 못했습니다."

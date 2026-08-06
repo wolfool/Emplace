@@ -1,6 +1,6 @@
-package kr.wolfool.emplace.placement;
+package com.wolfool.emplace.placement;
 
-import kr.wolfool.emplace.EmplaceConfig;
+import com.wolfool.emplace.EmplaceConfig;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureAttemptPlaceEvent;
 import net.momirealms.craftengine.bukkit.item.behavior.FurnitureItemBehavior;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;

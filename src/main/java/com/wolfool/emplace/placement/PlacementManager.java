@@ -1,7 +1,7 @@
-package kr.wolfool.emplace.placement;
+package com.wolfool.emplace.placement;
 
-import kr.wolfool.emplace.EmplaceConfig;
-import kr.wolfool.emplace.craftengine.Furnitures;
+import com.wolfool.emplace.EmplaceConfig;
+import com.wolfool.emplace.craftengine.Furnitures;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.item.behavior.FurnitureItemBehavior;
 import net.momirealms.craftengine.core.entity.furniture.AlignmentRule;
@@ -125,13 +125,13 @@ public final class PlacementManager {
 
         Location spot = session.spot();
         if (spot == null || session.isBlocked()) {
-            player.sendMessage(config.message("cannot-place", "<red>여기에는 놓을 수 없다."));
+            player.sendMessage(config.message("cannot-place", "<red>여기에는 놓을 수 없습니다."));
             return false;
         }
 
         var placed = furnitures.place(session.definition(), session.variantName(), spot, session.yaw());
         if (placed == null) {
-            player.sendMessage(config.message("place-failed", "<red>가구를 놓지 못했다."));
+            player.sendMessage(config.message("place-failed", "<red>가구를 놓지 못했습니다."));
             return false;
         }
 

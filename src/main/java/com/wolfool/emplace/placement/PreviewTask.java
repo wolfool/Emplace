@@ -1,4 +1,4 @@
-package kr.wolfool.emplace.placement;
+package com.wolfool.emplace.placement;
 
 import org.bukkit.scheduler.BukkitRunnable;
 

@@ -2,7 +2,7 @@ plugins {
     java
 }
 
-group = "kr.wolfool.emplace"
+group = "com.wolfool.emplace"
 version = "1.0.0"
 
 repositories {

@@ -1,6 +1,6 @@
 name: Emplace
 version: 1.0.0
-main: kr.wolfool.emplace.EmplacePlugin
+main: com.wolfool.emplace.EmplacePlugin
 api-version: "1.21"
 depend: [CraftEngine]
 author: wolfool

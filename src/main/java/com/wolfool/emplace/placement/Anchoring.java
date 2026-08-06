@@ -1,4 +1,4 @@
-package kr.wolfool.emplace.placement;
+package com.wolfool.emplace.placement;
 
 import net.momirealms.craftengine.core.entity.furniture.AlignmentRule;
 import net.momirealms.craftengine.core.entity.furniture.AnchorType;

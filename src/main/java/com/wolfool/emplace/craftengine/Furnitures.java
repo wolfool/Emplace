@@ -1,4 +1,4 @@
-package kr.wolfool.emplace.craftengine;
+package com.wolfool.emplace.craftengine;
 
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;

@@ -1,4 +1,4 @@
-package kr.wolfool.emplace;
+package com.wolfool.emplace;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;

@@ -1,6 +1,6 @@
-package kr.wolfool.emplace;
+package com.wolfool.emplace;
 
-import kr.wolfool.emplace.placement.PlacementManager;
+import com.wolfool.emplace.placement.PlacementManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -47,19 +47,19 @@ public final class EmplaceCommand implements CommandExecutor, TabCompleter {
 
         if (args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("emplace.admin")) {
-                sender.sendMessage(Component.text("권한이 없다.").color(NamedTextColor.RED));
+                sender.sendMessage(Component.text("권한이 없습니다.").color(NamedTextColor.RED));
                 return true;
             }
             config.reload();
             // 설정이 바뀌면 놓는 중인 미리보기가 옛 값으로 돌고 있을 수 있다. 정리한다.
             placement.cancelAll();
-            sender.sendMessage(Component.text("config.yml 을 다시 읽었다.").color(NamedTextColor.GREEN));
+            sender.sendMessage(Component.text("config.yml 을 다시 읽었습니다.").color(NamedTextColor.GREEN));
             return true;
         }
 
         if (args[0].equalsIgnoreCase("cancel") && sender instanceof Player player) {
             placement.cancel(player, true);
-            sender.sendMessage(Component.text("놓기를 그만뒀다.").color(NamedTextColor.YELLOW));
+            sender.sendMessage(Component.text("놓기를 그만두었습니다.").color(NamedTextColor.YELLOW));
             return true;
         }
 

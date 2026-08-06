@@ -1,8 +1,8 @@
-package kr.wolfool.emplace;
+package com.wolfool.emplace;
 
-import kr.wolfool.emplace.placement.PlacementListener;
-import kr.wolfool.emplace.placement.PlacementManager;
-import kr.wolfool.emplace.placement.PreviewTask;
+import com.wolfool.emplace.placement.PlacementListener;
+import com.wolfool.emplace.placement.PlacementManager;
+import com.wolfool.emplace.placement.PreviewTask;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
