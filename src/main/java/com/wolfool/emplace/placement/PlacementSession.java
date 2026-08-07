@@ -40,10 +40,13 @@ public final class PlacementSession {
     private float yaw;
     private @Nullable Location spot;
     private boolean blocked;
+    /** 지금 쓰는 격자. 놓는 중에 바꿀 수 있습니다. */
+    private Grid grid;
 
     PlacementSession(Player player, FurnitureDefinition definition, ItemStack item,
                      Map<String, FurnitureItemBehavior.Rule> rules,
-                     PreviewRenderer renderer, boolean glow, String variantName, float yaw) {
+                     PreviewRenderer renderer, boolean glow, String variantName, float yaw,
+                     Grid grid) {
         this.player = player;
         this.definition = definition;
         this.item = item;
@@ -51,6 +54,7 @@ public final class PlacementSession {
         this.renderer = renderer;
         this.glow = glow;
         this.variantName = variantName;
+        this.grid = grid;
         this.yaw = Anchoring.snap(yaw, rotationRule());
     }
 
@@ -78,6 +82,20 @@ public final class PlacementSession {
 
     public AlignmentRule alignmentRule() {
         return rule().alignmentRule();
+    }
+
+    public Grid grid() {
+        return grid;
+    }
+
+    /** 다음 격자로 넘어갑니다. 미리보기는 다음 틱에 저절로 따라옵니다. */
+    public Grid cycleGrid() {
+        grid = grid.next();
+        return grid;
+    }
+
+    public void grid(Grid value) {
+        if (value != null) this.grid = value;
     }
 
     public String variantName() {

@@ -18,8 +18,10 @@ public final class EmplaceConfig {
     private double reach = 5.0;
     private boolean glow = true;
     private boolean actionBar = true;
-    private boolean sneakToCancel = true;
+    private boolean sneakToCycleGrid = true;
     private boolean debug = false;
+    private com.wolfool.emplace.placement.Grid defaultGrid =
+            com.wolfool.emplace.placement.Grid.FURNITURE;
 
     public EmplaceConfig(Plugin plugin) {
         this.plugin = plugin;
@@ -40,8 +42,27 @@ public final class EmplaceConfig {
         this.reach = cfg.getDouble("reach", 5.0);
         this.glow = cfg.getBoolean("preview.glow", true);
         this.actionBar = cfg.getBoolean("preview.action-bar", true);
-        this.sneakToCancel = cfg.getBoolean("controls.sneak-to-cancel", true);
+        this.sneakToCycleGrid = cfg.getBoolean("controls.sneak-to-cycle-grid", true);
         this.debug = cfg.getBoolean("debug", false);
+
+        String gridName = cfg.getString("grid.default", "half");
+        var found = com.wolfool.emplace.placement.Grid.byName(gridName);
+        if (found == null) {
+            plugin.getLogger().warning("grid.default 에 적힌 '" + gridName
+                    + "' 은(는) 없는 격자입니다. 0.5칸으로 둡니다.");
+            found = com.wolfool.emplace.placement.Grid.HALF;
+        }
+        this.defaultGrid = found;
+    }
+
+    /** 아무것도 안 고른 사람이 쓸 격자. */
+    public com.wolfool.emplace.placement.Grid defaultGrid() {
+        return defaultGrid;
+    }
+
+    /** MiniMessage 한 줄을 그대로 만듭니다. 안내 문구를 이어 붙일 때 씁니다. */
+    public Component mini(String text) {
+        return MiniMessage.miniMessage().deserialize(text);
     }
 
     /** 켜면 가로챈 가구와 미리보기 조각 수를 로그에 남긴다. 안 보일 때 원인을 찾는 용도. */
@@ -74,8 +95,9 @@ public final class EmplaceConfig {
         return actionBar;
     }
 
-    public boolean sneakToCancel() {
-        return sneakToCancel;
+    /** 놓는 중에 웅크리기로 격자를 넘길지. */
+    public boolean sneakToCycleGrid() {
+        return sneakToCycleGrid;
     }
 
     /** config 의 문구 하나. MiniMessage 로 읽는다. */

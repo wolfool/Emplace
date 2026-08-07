@@ -32,7 +32,7 @@ public final class Anchoring {
      * @return 놓을 수 없는 곳(허공 등)을 보고 있으면 null
      */
     public static @Nullable Spot aim(Player player, FurnitureDefinition definition,
-                                     AlignmentRule alignment, double reach) {
+                                     AlignmentRule alignment, Grid grid, double reach) {
         RayTraceResult hit = player.rayTraceBlocks(reach);
         if (hit == null || hit.getHitBlock() == null) return null;
 
@@ -46,12 +46,12 @@ public final class Anchoring {
         Location block = hit.getHitBlock().getLocation()
                 .add(face.getModX(), face.getModY(), face.getModZ());
 
-        // 블록 안 어디쯤을 찍었는지(0~1)를 가구의 정렬 규칙으로 스냅한다.
-        // CENTER 면 한가운데로, QUARTER 면 0.25/0.75 로 붙는다.
+        // 블록 안 어디쯤을 찍었는지(0~1)를 격자에 맞춘다.
+        // 격자를 고르지 않았으면(FURNITURE) 가구가 갖고 있는 규칙을 그대로 쓴다.
         var precise = hit.getHitPosition();
         double fx = precise.getX() - Math.floor(precise.getX());
         double fz = precise.getZ() - Math.floor(precise.getZ());
-        Pair<Double, Double> snapped = alignment.apply(Pair.of(fx, fz));
+        Pair<Double, Double> snapped = grid.apply(fx, fz, alignment);
 
         Location at = block.clone().add(snapped.left(), 0, snapped.right());
         return new Spot(at, variant, face);

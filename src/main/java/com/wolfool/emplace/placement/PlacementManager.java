@@ -29,6 +29,14 @@ public final class PlacementManager {
     private final PreviewRenderer renderer;
 
     private final Map<UUID, PlacementSession> sessions = new HashMap<>();
+    /**
+     * 사람마다 골라 둔 격자.
+     *
+     * <p>세션이 아니라 여기 둡니다. 가구 하나를 놓을 때마다 다시 고르게 하면
+     * 의자 넷을 같은 자리에 맞춰 놓는 일이 고역이 됩니다. 한 번 고르면 계속
+     * 이어지고, 서버를 나가면 잊습니다.
+     */
+    private final Map<UUID, Grid> grids = new HashMap<>();
 
     public PlacementManager(Plugin plugin, EmplaceConfig config) {
         this.plugin = plugin;
@@ -63,7 +71,8 @@ public final class PlacementManager {
 
         PlacementSession session = new PlacementSession(
                 player, definition, item.clone(), rules, renderer, config.glow(),
-                definition.anyVariantName(), player.getLocation().getYaw() + 180f);
+                definition.anyVariantName(), player.getLocation().getYaw() + 180f,
+                gridOf(player));
 
         sessions.put(player.getUniqueId(), session);
         // 첫 프레임을 바로 그려서, 시작하자마자 미리보기가 보이게 한다.
@@ -99,7 +108,8 @@ public final class PlacementManager {
 
     private void follow(PlacementSession session) {
         Anchoring.Spot spot = Anchoring.aim(
-                session.player(), session.definition(), session.alignmentRule(), config.reach());
+                session.player(), session.definition(), session.alignmentRule(),
+                session.grid(), config.reach());
         if (spot == null) {
             session.markBlocked();
             return;
@@ -112,8 +122,25 @@ public final class PlacementManager {
         String key = session.isBlocked() ? "hint-blocked" : "hint";
         Component hint = config.message(key, session.isBlocked()
                 ? "<red>여기에는 놓을 수 없다"
-                : "<gray>좌클릭 <white>회전<gray> · 우클릭 <white>설치<gray> · 웅크리기 <white>취소");
+                : "<gray>좌클릭 <white>회전<gray> · 우클릭 <white>설치<gray>"
+                        + " · 웅크리기 <white>격자<gray> · Q <white>취소");
+        // 지금 격자를 늘 같이 보여준다. 어느 격자인지 모른 채 놓으면
+        // 왜 자리가 안 맞는지 알 길이 없다.
+        hint = hint.append(Component.text("  ")).append(
+                config.mini("<dark_gray>| 격자 <yellow>" + session.grid().korean()));
         session.player().sendActionBar(hint);
+    }
+
+    /** 그 사람이 골라 둔 격자. 안 골랐으면 설정의 기본값. */
+    public Grid gridOf(Player player) {
+        return grids.getOrDefault(player.getUniqueId(), config.defaultGrid());
+    }
+
+    /** 격자를 바꿔 둔다. 다음에 놓을 때도 이어진다. */
+    public void gridOf(Player player, Grid grid) {
+        grids.put(player.getUniqueId(), grid);
+        PlacementSession session = sessions.get(player.getUniqueId());
+        if (session != null) session.grid(grid);
     }
 
     // ---------------- 끝내기 ----------------

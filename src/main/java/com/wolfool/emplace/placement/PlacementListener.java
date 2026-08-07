@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -27,9 +28,17 @@ import java.util.Map;
  * <pre>
  *   가구 아이템 우클릭 : 미리보기 시작 (즉시 설치를 가로챈다)
  *   좌클릭            : 회전
+ *   F (손 바꾸기)      : 반대로 회전
  *   우클릭            : 설치
- *   웅크리기          : 취소
+ *   웅크리기          : 격자 전환
+ *   Q (버리기)         : 취소
+ *   슬롯 바꾸기        : 취소
  * </pre>
+ *
+ * <p><b>웅크리기는 원래 취소였다.</b> 격자를 손에서 떼지 않고 바꿀 수 있어야
+ * 해서 그 자리로 옮겼고, 취소는 Q 와 슬롯 바꾸기가 이미 하고 있으므로
+ * 없어진 길은 없다. 반대로 회전은 웅크리기+좌클릭이었는데 웅크리기가
+ * 격자를 물게 되면서 F 로 옮겼다 — 놓는 중에 손 바꾸기는 어차피 막는다.
  */
 public final class PlacementListener implements Listener {
 
@@ -110,19 +119,31 @@ public final class PlacementListener implements Listener {
 
         if (event.getAction().isLeftClick()) {
             PlacementSession session = placement.session(player);
-            if (session != null) session.rotate(!player.isSneaking());
+            if (session != null) session.rotate(true);
         } else if (event.getAction().isRightClick()) {
             placement.confirm(player);
         }
     }
 
-    /** 웅크리면 취소. 손이 비면 놓을 게 없다. */
+    /**
+     * 웅크리면 격자를 넘긴다.
+     *
+     * <p>누르는 순간에만 반응한다. 뗄 때도 반응하면 한 번 웅크렸다 펴는 사이에
+     * 두 번 넘어가 제자리로 돌아온다.
+     */
     @EventHandler
     public void onSneak(PlayerToggleSneakEvent event) {
-        if (!config.sneakToCancel()) return;
-        if (event.isSneaking() && placement.isPlacing(event.getPlayer())) {
-            placement.cancel(event.getPlayer(), true);
-        }
+        if (!event.isSneaking()) return;
+        if (!config.sneakToCycleGrid()) return;
+        Player player = event.getPlayer();
+        if (!placement.isPlacing(player)) return;
+
+        PlacementSession session = placement.session(player);
+        if (session == null) return;
+        Grid next = session.cycleGrid();
+        placement.gridOf(player, next);
+        player.playSound(player.getLocation(),
+                org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, next == Grid.FURNITURE ? 1.2f : 1.6f);
     }
 
     @EventHandler
@@ -130,8 +151,35 @@ public final class PlacementListener implements Listener {
         placement.cancel(event.getPlayer(), true);
     }
 
-    @EventHandler
+    /**
+     * 놓는 중에 F(손 바꾸기)를 누르면 반대로 돈다.
+     *
+     * <p>놓는 중에는 손을 바꿀 일이 없어서 남는 자리다. 16방향으로 도는 가구는
+     * 한 칸 되돌리려고 열다섯 번 눌러야 하므로 되돌리는 길이 하나는 있어야 한다.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
+        Player player = event.getPlayer();
+        if (!placement.isPlacing(player)) return;
+
+        // 손을 실제로 바꾸면 들고 있던 가구가 왼손으로 가서 미리보기가 끊긴다
+        event.setCancelled(true);
+
+        PlacementSession session = placement.session(player);
+        if (session != null) session.rotate(false);
+    }
+
+    /**
+     * Q(버리기)로 취소한다.
+     *
+     * <p><b>아이템은 안 버린다.</b> 취소하려고 눌렀는데 들고 있던 가구가 바닥에
+     * 떨어지면 그건 취소가 아니라 사고다. 놓는 중일 때만 이벤트를 막으므로,
+     * 평소의 버리기는 그대로 된다.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onDrop(PlayerDropItemEvent event) {
+        if (!placement.isPlacing(event.getPlayer())) return;
+        event.setCancelled(true);
         placement.cancel(event.getPlayer(), true);
     }
 
