@@ -28,11 +28,19 @@ public final class EmplacePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlacementListener(this, placement, config), this);
         new PreviewTask(placement).runTaskTimer(this, 1L, 1L);
 
-        EmplaceCommand command = new EmplaceCommand(this, config, placement);
+        // 부순 자리에 남는 안 보이는 판정을 치운다
+        var sweeper = new com.wolfool.emplace.cleanup.GhostSweeper(this,
+                getConfig().getBoolean("cleanup.sweep-on-break", true),
+                getConfig().getDouble("cleanup.sweep-radius", 4.0),
+                getConfig().getInt("cleanup.sweep-delay-ticks", 2),
+                getConfig().getBoolean("cleanup.deep", true));
+        getServer().getPluginManager().registerEvents(sweeper, this);
+
+        EmplaceCommand command = new EmplaceCommand(this, config, placement, sweeper);
         getCommand("emplace").setExecutor(command);
         getCommand("emplace").setTabCompleter(command);
 
-        getLogger().info("가구 설치를 미리보기 방식으로 바꿨다.");
+        getLogger().info("가구 설치를 미리보기 방식으로 바꿨습니다.");
     }
 
     @Override
